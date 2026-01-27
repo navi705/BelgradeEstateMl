@@ -3,7 +3,7 @@
 This is a small project for learning ML.
 
 ## Project Roadmap
-- [ ] Real Estate Parsing
+- [x] Real Estate Parsing
 - [ ] ML Processing (Simple Regression)
 - [ ] Grafana
 - [ ] Public API
