@@ -66,7 +66,7 @@ func runParser(s *Storage) {
 
 	sites := []struct {
 		name string
-		fn   func(int) ([]RealEstate, error)
+		fn   func(int) ([]RealEstate, int, error)
 		max  int // 0 means until no more elements
 	}{
 		{"4zida.rs", FourZidaList, 99},
@@ -83,7 +83,7 @@ func runParser(s *Storage) {
 	var wg sync.WaitGroup
 	for _, site := range sites {
 		wg.Add(1)
-		go func(sName string, sFn func(int) ([]RealEstate, error), sMax int) {
+		go func(sName string, sFn func(int) ([]RealEstate, int, error), sMaxPage int) {
 			defer wg.Done()
 			defer parserStatus.WithLabelValues(sName).Set(0)
 			parserStatus.WithLabelValues(sName).Set(1)
@@ -91,16 +91,30 @@ func runParser(s *Storage) {
 			start := time.Now()
 
 			page := 1
+			itemsSoFar := 0
+			totalItemsLimit := 0
+
 			for {
-				if sMax > 0 && page > sMax {
+				if sMaxPage > 0 && page > sMaxPage {
 					break
 				}
 
-				estates, err := sFn(page)
+				// Stop if we have reached the total items limit found on the site
+				if totalItemsLimit > 0 && itemsSoFar >= totalItemsLimit {
+					slog.Info("Reached total items limit", "site", sName, "limit", totalItemsLimit, "processed", itemsSoFar)
+					break
+				}
+
+				estates, total, err := sFn(page)
 				if err != nil {
 					slog.Error("Error parsing", "site", sName, "page", page, "error", err)
 					parserErrors.WithLabelValues(sName, "list_fetch").Inc()
 					break
+				}
+
+				// Update total limit if we found it and haven't set it yet (or update it if it changes/refined)
+				if total > 0 {
+					totalItemsLimit = total
 				}
 
 				if len(estates) == 0 {
@@ -116,7 +130,8 @@ func runParser(s *Storage) {
 					}
 				}
 
-				slog.Info("Saved page", "site", sName, "page", page, "count", len(estates))
+				itemsSoFar += len(estates)
+				slog.Info("Saved page", "site", sName, "page", page, "count", len(estates), "total_found", total)
 				page++
 			}
 

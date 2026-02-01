@@ -78,10 +78,11 @@ func setupParser() *colly.Collector {
 
 type EstateParser func(e *colly.HTMLElement) RealEstate
 
-func parseWebSiteData(domen string, page int, firstPage string, secondPage string, goLangQuery string, callback EstateParser) ([]RealEstate, error) {
+func parseWebSiteData(domen string, page int, firstPage string, secondPage string, goLangQuery string, callback EstateParser, paginationCallback func(*colly.HTMLElement) int) ([]RealEstate, int, error) {
 	parser := setupParser()
 	var parsingError error
 	var estates []RealEstate
+	var totalItems int
 
 	parser.OnResponse(func(r *colly.Response) {
 		if r.StatusCode != 200 {
@@ -97,9 +98,22 @@ func parseWebSiteData(domen string, page int, firstPage string, secondPage strin
 		}
 	})
 
+	// Add pagination callback if provided
+	if paginationCallback != nil {
+		// CityExpert specific selector for now, but could be parameterized
+		if domen == "cityexpert.rs" {
+			parser.OnHTML(".cx-pagination span", func(e *colly.HTMLElement) {
+				count := paginationCallback(e)
+				if count > 0 {
+					totalItems = count
+				}
+			})
+		}
+	}
+
 	if page <= 0 {
 		slog.Error("page must be greater than 0", "page", page)
-		return nil, errors.New("page must be greater than 0")
+		return nil, 0, errors.New("page must be greater than 0")
 	}
 
 	visitError := error(nil)
@@ -111,27 +125,28 @@ func parseWebSiteData(domen string, page int, firstPage string, secondPage strin
 
 	if visitError != nil {
 		slog.Error("visit failed for", "domen", domen, "url", firstPage, "error", visitError)
-		return nil, visitError
+		return nil, 0, visitError
 	}
 
 	if parsingError != nil {
 		slog.Error("parsing failed for", "domen", domen, "error", parsingError)
-		return nil, parsingError
+		return nil, 0, parsingError
 	}
 
 	count := len(estates)
-	slog.Info("parsing successfully finished", "domain", domen, "count", count)
+	slog.Info("parsing successfully finished", "domain", domen, "count", count, "totalItems", totalItems)
 
 	if count > 0 {
 		slog.Info("first element", "data", estates[0])
 		slog.Info("last element", "data", estates[count-1])
 	}
 
-	return estates, nil
+	return estates, totalItems, nil
 }
 
-func FourZidaList(page int) ([]RealEstate, error) {
-	return parseWebSiteData("4zida.rs", page, "https://www.4zida.rs/prodaja-stanova/beograd", "https://www.4zida.rs/prodaja-stanova/beograd?strana=%d", "[test-data='ad-search-card']", parse4ZidaCard)
+func FourZidaList(page int) ([]RealEstate, int, error) {
+	estates, total, err := parseWebSiteData("4zida.rs", page, "https://www.4zida.rs/prodaja-stanova/beograd", "https://www.4zida.rs/prodaja-stanova/beograd?strana=%d", "[test-data='ad-search-card']", parse4ZidaCard, nil)
+	return estates, total, err
 }
 
 func parse4ZidaCard(e *colly.HTMLElement) RealEstate {
@@ -165,8 +180,9 @@ func parse4ZidaCard(e *colly.HTMLElement) RealEstate {
 	return estate
 }
 
-func HaloOglasiList(page int) ([]RealEstate, error) {
-	return parseWebSiteData("halooglasi.com", page, "https://www.halooglasi.com/nekretnine/prodaja-stanova/beograd", "https://www.halooglasi.com/nekretnine/prodaja-stanova/beograd?page=%d", ".product-item", parseHaloOglasiCard)
+func HaloOglasiList(page int) ([]RealEstate, int, error) {
+	estates, total, err := parseWebSiteData("halooglasi.com", page, "https://www.halooglasi.com/nekretnine/prodaja-stanova/beograd", "https://www.halooglasi.com/nekretnine/prodaja-stanova/beograd?page=%d", ".product-item", parseHaloOglasiCard, nil)
+	return estates, total, err
 }
 
 func parseHaloOglasiCard(e *colly.HTMLElement) RealEstate {
@@ -235,8 +251,9 @@ func parseHaloOglasiCard(e *colly.HTMLElement) RealEstate {
 	return estate
 }
 
-func NekretnineList(page int) ([]RealEstate, error) {
-	return parseWebSiteData("nekretnine.rs", page, "https://www.nekretnine.rs/stambeni-objekti/stanovi/izdavanje-prodaja/prodaja/grad/beograd/lista/", "https://www.nekretnine.rs/stambeni-objekti/stanovi/izdavanje-prodaja/prodaja/grad/beograd/lista/stranica/%d/", ".row.offer", parseNekretnineCard)
+func NekretnineList(page int) ([]RealEstate, int, error) {
+	estates, total, err := parseWebSiteData("nekretnine.rs", page, "https://www.nekretnine.rs/stambeni-objekti/stanovi/izdavanje-prodaja/prodaja/grad/beograd/lista/", "https://www.nekretnine.rs/stambeni-objekti/stanovi/izdavanje-prodaja/prodaja/grad/beograd/lista/stranica/%d/", ".row.offer", parseNekretnineCard, nil)
+	return estates, total, err
 }
 
 func parseNekretnineCard(e *colly.HTMLElement) RealEstate {
@@ -312,8 +329,23 @@ func parseSerbianRooms(s string) float32 {
 	return 0
 }
 
-func CityExpertList(page int) ([]RealEstate, error) {
-	return parseWebSiteData("cityexpert.rs", page, "https://cityexpert.rs/prodaja-nekretnina/beograd?ptId=1", "https://cityexpert.rs/prodaja-nekretnina/beograd?ptId=1&currentPage=%d", ".prop-card", parseCityExpertCard)
+func CityExpertList(page int) ([]RealEstate, int, error) {
+	return parseWebSiteData("cityexpert.rs", page, "https://cityexpert.rs/prodaja-nekretnina/beograd?ptId=1", "https://cityexpert.rs/prodaja-nekretnina/beograd?ptId=1&currentPage=%d", ".prop-card", parseCityExpertCard, parseCityExpertPagination)
+}
+
+func parseCityExpertPagination(e *colly.HTMLElement) int {
+	text := strings.TrimSpace(e.Text)
+	return parseCityExpertTotalCount(text)
+}
+
+func parseCityExpertTotalCount(text string) int {
+	// Example: "571-596 od 596 rezultata"
+	parts := strings.Split(text, " od ")
+	if len(parts) == 2 {
+		totalStr := strings.TrimSpace(strings.Split(parts[1], " ")[0])
+		return int(parseNumeric(totalStr))
+	}
+	return 0
 }
 
 func parseCityExpertCard(e *colly.HTMLElement) RealEstate {

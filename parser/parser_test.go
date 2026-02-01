@@ -46,7 +46,7 @@ func TestFourZidaConnection(t *testing.T) {
 }
 
 func TestFourZidaListFirstPage(t *testing.T) {
-	list, err := FourZidaList(1)
+	list, _, err := FourZidaList(1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,7 +56,7 @@ func TestFourZidaListFirstPage(t *testing.T) {
 }
 
 func TestFourZidaListSecondPage(t *testing.T) {
-	list, err := FourZidaList(2)
+	list, _, err := FourZidaList(2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -66,7 +66,7 @@ func TestFourZidaListSecondPage(t *testing.T) {
 }
 
 func TestFourZidaFloor(t *testing.T) {
-	list, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1", "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard)
+	list, _, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1", "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,19 +90,19 @@ func TestFourZidaGenral(t *testing.T) {
 	var list []RealEstate
 
 	for i := 1; i < 10; i++ {
-		listCommon, err := FourZidaList(i)
+		listCommon, _, err := FourZidaList(i)
 		if err != nil {
 			t.Error(err)
 		}
 		list = append(list, listCommon...)
 
-		listFloor, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-2", "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard)
+		listFloor, _, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-2", "https://www.4zida.rs/prodaja-stanova/beograd?sprat_od=-4&sprat_do=-1&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard, nil)
 		if err != nil {
 			t.Error(err)
 		}
 		list = append(list, listFloor...)
 
-		listWhoCreated, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd/investitor?oglasivac=vlasnik", "https://www.4zida.rs/prodaja-stanova/beograd/investitor?oglasivac=vlasnik&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard)
+		listWhoCreated, _, err := parseWebSiteData("4zida.rs", 1, "https://www.4zida.rs/prodaja-stanova/beograd/investitor?oglasivac=vlasnik", "https://www.4zida.rs/prodaja-stanova/beograd/investitor?oglasivac=vlasnik&strana=%d", "[test-data='ad-search-card']", parse4ZidaCard, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -166,7 +166,7 @@ func TestHaloOglasiConnection(t *testing.T) {
 }
 
 func TestHaloOglasiListFirstPage(t *testing.T) {
-	list, err := HaloOglasiList(1)
+	list, _, err := HaloOglasiList(1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -176,7 +176,7 @@ func TestHaloOglasiListFirstPage(t *testing.T) {
 }
 
 func TestHaloOglasiListSecondPage(t *testing.T) {
-	list, err := HaloOglasiList(2)
+	list, _, err := HaloOglasiList(2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -190,7 +190,7 @@ func TestCityExpertConnection(t *testing.T) {
 }
 
 func TestCityExpertListFirstPage(t *testing.T) {
-	list, err := CityExpertList(1)
+	list, _, err := CityExpertList(1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -200,7 +200,7 @@ func TestCityExpertListFirstPage(t *testing.T) {
 }
 
 func TestCityExpertListSecondPage(t *testing.T) {
-	list, err := CityExpertList(2)
+	list, _, err := CityExpertList(2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -214,7 +214,7 @@ func TestNekretninersConnection(t *testing.T) {
 }
 
 func TestNekretninersListFirstPage(t *testing.T) {
-	list, err := NekretnineList(1)
+	list, _, err := NekretnineList(1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -224,7 +224,7 @@ func TestNekretninersListFirstPage(t *testing.T) {
 }
 
 func TestNekretninersListSecondPage(t *testing.T) {
-	list, err := NekretnineList(2)
+	list, _, err := NekretnineList(2)
 	if err != nil {
 		t.Error(err)
 	}
