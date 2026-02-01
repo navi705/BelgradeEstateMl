@@ -20,16 +20,30 @@ This service automatically scrapes real estate listings from major Serbian websi
 - **Monitoring**: Built-in Prometheus metrics export.
 - **Logging**: Rotating logs with 40MB limit to prevent storage exhaustion.
 
-## 📦 Deployment
+## 🚀 Deployment
 
 ### Prerequisites
 - Docker & Docker Compose
 - `.env` file in the `parser/` directory
 
-### Quick Start
+### Local Start
 ```bash
-docker-compose up -d --build
+docker-compose up -d
 ```
+
+### 🛰 Server Deployment (Remote)
+
+To deploy on a remote server, you need to pull the image from GitHub Container Registry (GHCR). Even for public packages, it's recommended to log in to avoid rate limits or permission issues.
+
+1. **Create a GitHub PAT**: Go to GitHub Settings -> Developer settings -> Personal access tokens (classic) and create a token with `read:packages` permission.
+2. **Login on Server**:
+   ```bash
+   echo "YOUR_GITHUB_TOKEN" | docker login ghcr.io -u YOUR_USERNAME --password-stdin
+   ```
+3. **Run Stack**:
+   ```bash
+   docker-compose up -d
+   ```
 
 ## ⚙️ Configuration (.env)
 
