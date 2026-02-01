@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
-
 	"sync"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 const maxLogSize = 40 * 1024 * 1024 // 40MB
@@ -61,94 +63,61 @@ func init() {
 
 func runParser(s *Storage) {
 	slog.Info("Starting parser run...")
+
+	sites := []struct {
+		name string
+		fn   func(int) ([]RealEstate, error)
+		max  int // 0 means until no more elements
+	}{
+		{"4zida.rs", FourZidaList, 99},
+		{"halooglasi.com", HaloOglasiList, 0},
+		{"nekretnine.rs", NekretnineList, 0},
+		{"cityexpert.rs", CityExpertList, 0},
+	}
+
 	var wg sync.WaitGroup
+	for _, site := range sites {
+		wg.Add(1)
+		go func(sName string, sFn func(int) ([]RealEstate, error), sMax int) {
+			defer wg.Done()
+			start := time.Now()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		for i := 1; i <= 99; i++ {
-			estates, err := FourZidaList(i)
-			if err != nil {
-				slog.Error("Error parsing 4zida", "page", i, "error", err)
-				continue
-			}
-			for _, e := range estates {
-				if err := s.SaveEstate(e); err != nil {
-					slog.Error("Error saving estate from 4zida", "link", e.Link, "error", err)
+			page := 1
+			for {
+				if sMax > 0 && page > sMax {
+					break
 				}
-			}
-			slog.Info("Saved page from 4zida", "page", i, "count", len(estates))
-		}
-	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		page := 1
-		for {
-			estates, err := HaloOglasiList(page)
-			if err != nil {
-				slog.Error("Error parsing HaloOglasi", "page", page, "error", err)
-				break
-			}
-			if len(estates) == 0 {
-				break
-			}
-			for _, e := range estates {
-				if err := s.SaveEstate(e); err != nil {
-					slog.Error("Error saving estate from HaloOglasi", "link", e.Link, "error", err)
+				estates, err := sFn(page)
+				if err != nil {
+					slog.Error("Error parsing", "site", sName, "page", page, "error", err)
+					parserErrors.WithLabelValues(sName, "list_fetch").Inc()
+					break
 				}
-			}
-			slog.Info("Saved page from HaloOglasi", "page", page, "count", len(estates))
-			page++
-		}
-	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		page := 1
-		for {
-			estates, err := NekretnineList(page)
-			if err != nil {
-				slog.Error("Error parsing Nekretnine", "page", page, "error", err)
-				break
-			}
-			if len(estates) == 0 {
-				break
-			}
-			for _, e := range estates {
-				if err := s.SaveEstate(e); err != nil {
-					slog.Error("Error saving estate from Nekretnine", "link", e.Link, "error", err)
+				if len(estates) == 0 {
+					break
 				}
-			}
-			slog.Info("Saved page from Nekretnine", "page", page, "count", len(estates))
-			page++
-		}
-	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		page := 1
-		for {
-			estates, err := CityExpertList(page)
-			if err != nil {
-				slog.Error("Error parsing CityExpert", "page", page, "error", err)
-				break
-			}
-			if len(estates) == 0 {
-				break
-			}
-			for _, e := range estates {
-				if err := s.SaveEstate(e); err != nil {
-					slog.Error("Error saving estate from CityExpert", "link", e.Link, "error", err)
+				for _, e := range estates {
+					if err := s.SaveEstate(e); err != nil {
+						slog.Error("Error saving estate", "site", sName, "link", e.Link, "error", err)
+						parserErrors.WithLabelValues(sName, "db_save").Inc()
+					} else {
+						processedItems.WithLabelValues(sName, "processed").Inc()
+					}
 				}
+
+				slog.Info("Saved page", "site", sName, "page", page, "count", len(estates))
+				page++
 			}
-			slog.Info("Saved page from CityExpert", "page", page, "count", len(estates))
-			page++
-		}
-	}()
+
+			duration := time.Since(start).Seconds()
+			runDuration.WithLabelValues(sName).Observe(duration)
+			lastRunTimestamp.WithLabelValues(sName).SetToCurrentTime()
+			slog.Info("Site parsing completed", "site", sName, "duration", duration)
+		}(site.name, site.fn, site.max)
+	}
 
 	wg.Wait()
 	slog.Info("Parser run completed")
@@ -180,6 +149,20 @@ func main() {
 		slog.Error("Failed to run migrations", "error", err)
 		os.Exit(1)
 	}
+
+	// Start Prometheus metrics server
+	metricsPort := os.Getenv("METRICS_PORT")
+	if metricsPort == "" {
+		metricsPort = "2112" // fallback
+	}
+
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		slog.Info("Starting metrics server", "port", metricsPort)
+		if err := http.ListenAndServe(":"+metricsPort, nil); err != nil {
+			slog.Error("Metrics server failed", "error", err)
+		}
+	}()
 
 	runParser(storage)
 

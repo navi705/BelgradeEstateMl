@@ -2,9 +2,8 @@ version: '3.8'
 
 services:
   parser:
+    container_name: estate_parser
     build: .
-    ports:
-      - "3454:3454"
     depends_on:
       - db
     environment:
@@ -18,8 +17,6 @@ services:
 
   db:
     image: postgres:alpine
-    ports:
-      - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
