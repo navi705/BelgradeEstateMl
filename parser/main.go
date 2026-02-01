@@ -80,6 +80,9 @@ func runParser(s *Storage) {
 		wg.Add(1)
 		go func(sName string, sFn func(int) ([]RealEstate, error), sMax int) {
 			defer wg.Done()
+			defer parserStatus.WithLabelValues(sName).Set(0)
+			parserStatus.WithLabelValues(sName).Set(1)
+
 			start := time.Now()
 
 			page := 1
@@ -114,6 +117,7 @@ func runParser(s *Storage) {
 
 			duration := time.Since(start).Seconds()
 			runDuration.WithLabelValues(sName).Observe(duration)
+			lastRunDuration.WithLabelValues(sName).Set(duration)
 			lastRunTimestamp.WithLabelValues(sName).SetToCurrentTime()
 			slog.Info("Site parsing completed", "site", sName, "duration", duration)
 		}(site.name, site.fn, site.max)

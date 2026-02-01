@@ -26,4 +26,14 @@ var (
 		Help:    "Duration of the parser run in seconds",
 		Buckets: []float64{10, 30, 60, 120, 300, 600, 1200, 3600},
 	}, []string{"site"})
+
+	lastRunDuration = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "parser_last_run_duration_seconds",
+		Help: "Duration of the last successful run in seconds",
+	}, []string{"site"})
+
+	parserStatus = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "parser_active_status",
+		Help: "Current status of the parser: 1 for running, 0 for idle",
+	}, []string{"site"})
 )
