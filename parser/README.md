@@ -85,17 +85,14 @@ scrape_configs:
 
 A pre-configured dashboard is available in the `grafana/` directory.
 
-### How to Import
-1. Open Grafana and go to **Dashboards** -> **New** -> **Import**.
-2. Upload the `grafana/dashboard.json` file.
-3. Select your Prometheus data source.
-4. Enjoy the beautiful charts!
+### Dashboard Preview
+![Grafana Dashboard](./grafana/grafana_dashboard_screenshot.png)
 
-### Included Panels
-- **Items Processed**: A stacked area chart (as requested) showing the throughput per domain.
-- **Scraper Health**: Big status numbers showing how many seconds/hours ago each site was scraped.
-- **Error Distribution**: A donut chart showing where errors are happening (`fetch` vs `save`).
-- **Performance**: Average duration of a full scraping run per site.
+### Key Panels
+- **Status & Health**: Real-time `IDLE/RUNNING` status
+- **Throughput**: Hourly stacked trends per site.
+- **Performance**: Total items processed per session.
+- **Reliability**: Error distribution (fetch vs save).
 
 ## 📝 Logging
 
