@@ -75,6 +75,11 @@ func runParser(s *Storage) {
 		{"cityexpert.rs", CityExpertList, 0},
 	}
 
+	for _, site := range sites {
+		parserStatus.WithLabelValues(site.name).Set(0)
+		lastRunDuration.WithLabelValues(site.name).Set(0)
+	}
+
 	var wg sync.WaitGroup
 	for _, site := range sites {
 		wg.Add(1)
