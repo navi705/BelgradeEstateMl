@@ -101,7 +101,6 @@
                     "editorMode": "code",
                     "expr": "max by (site) (parser_active_status{job=\"belgrade-estate-parser\"})",
                     "legendFormat": "{{site}}",
-                    "range": true,
                     "refId": "A"
                 }
             ],
@@ -315,7 +314,6 @@
                     "editorMode": "code",
                     "expr": "max by (site) (parser_last_run_duration_seconds{job=\"belgrade-estate-parser\"})",
                     "legendFormat": "{{site}}",
-                    "range": true,
                     "refId": "A"
                 }
             ],
@@ -482,7 +480,7 @@
                         "uid": "${DS_PROMETHEUS}"
                     },
                     "editorMode": "code",
-                    "expr": "parser_active_status{job=\"belgrade-estate-parser\"}",
+                    "expr": "max by (site) (parser_active_status{job=\"belgrade-estate-parser\"})",
                     "legendFormat": "{{site}}",
                     "range": true,
                     "refId": "A"
