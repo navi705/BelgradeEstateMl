@@ -3,7 +3,7 @@ version: '3.8'
 services:
   parser:
     container_name: estate_parser
-    build: .
+    image: ghcr.io/vrclu/belgrade-estate-parser:latest
     depends_on:
       - db
     environment:
