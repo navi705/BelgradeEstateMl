@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -154,11 +155,20 @@ func runParser(s *Storage) {
 }
 
 func main() {
-	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		slog.Error("DATABASE_URL environment variable is not set")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("PROJECT_USER")
+	dbPass := os.Getenv("PROJECT_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbSSL := os.Getenv("DB_SSL_MODE")
+
+	if dbHost == "" || dbPort == "" || dbUser == "" || dbPass == "" || dbName == "" {
+		slog.Error("Database environment variables are not fully set")
 		os.Exit(1)
 	}
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		dbHost, dbPort, dbUser, dbPass, dbName, dbSSL)
 
 	storage, err := NewStorage(connStr)
 	if err != nil {
