@@ -221,7 +221,6 @@ func main() {
 			"count":       len(estates),
 			"stats":       stats,
 			"correlation": matrix,
-			"data":        estates,
 		})
 	})
 

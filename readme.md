@@ -6,9 +6,12 @@ Analytical engine and predictive models for the Belgrade real estate market. The
 
 Base URL: [https://bg-real-estate.duckdns.org](https://bg-real-estate.duckdns.org)
 
-### Municipalities
-Get a list of all supported districts for filtering.
-- **URL**: [https://bg-real-estate.duckdns.org/districts](https://bg-real-estate.duckdns.org/districts)
+### System Info & Discovery
+- **Districts**: Get all supported municipalities.
+  - [Test Link](https://bg-real-estate.duckdns.org/districts)
+- **Data Period**: Get the available date range (min/max date) in the database.
+  - [Test Link](https://bg-real-estate.duckdns.org/period)
+- **Rate Limit**: 2 requests/sec per IP (Burst: 5).
 
 ### Valuation and Predictions
 Predict apartment prices using different mathematical models.
@@ -18,6 +21,8 @@ Predict apartment prices using different mathematical models.
 - `rooms`: Number of rooms
 - `floor`: Floor number
 - `district`: Municipality name (e.g., Vračar, Zemun)
+- `from`: Start date for data filtering (`YYYY-MM-DD`)
+- `to`: End date for data filtering (`YYYY-MM-DD`)
 - `round`: Decimal precision (0-4)
 - `outlier_method`: Method for outlier removal (`iqr` or `sigma`). **IQR is recommended**.
 - `exclude_outliers`: Enable/disable outlier filtering (`true` or `false`).
@@ -44,9 +49,13 @@ Predict apartment prices using different mathematical models.
 Returns normality checks, distribution data, and the **monthly market trend**.
 - [Test Link: Trends & Stats for Palilula](https://bg-real-estate.duckdns.org/analyze?fields=price&district=Palilula&outlier_method=iqr)
 
+**Full Dataset Export:**
+Returns statistics and correlation matrix for the district in one request.
+- [Test Link: Full Data Dump (Zemun)](https://bg-real-estate.duckdns.org/full?district=Zemun)
+
 **Feature Correlation:**
 Matrix of how price, area, and rooms relate to each other.
-- [Test Link: Correlation in Voždovac (2024)](https://bg-real-estate.duckdns.org/correlation?district=Vo%C5%BEdovac&from=2024-01-01&to=2024-12-31)
+- [Test Link: Correlation in Voždovac](https://bg-real-estate.duckdns.org/correlation?district=Vo%C5%BEdovac)
 
 **Field Statistics:**
 Basic stats (min, max, mean, median) for a specific metric.
