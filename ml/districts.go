@@ -214,7 +214,24 @@ func StandardizeDistrict(raw string) string {
 		return "Unknown"
 	}
 
-	if strings.Contains(strings.ToLower(raw), "blok") {
+	// Handle common ASCII variations for districts
+	rawLower := strings.ToLower(raw)
+	switch rawLower {
+	case "vracar":
+		return "Vračar"
+	case "vozdovac":
+		return "Voždovac"
+	case "cukarica":
+		return "Čukarica"
+	case "savski venac":
+		return "Savski venac"
+	case "stari grad":
+		return "Stari Grad"
+	case "novi beograd":
+		return "Novi Beograd"
+	}
+
+	if strings.Contains(rawLower, "blok") {
 		return "Novi Beograd"
 	}
 

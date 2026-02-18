@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"golang.org/x/time/rate"
@@ -43,12 +45,26 @@ func NewIPStats() *IPStats {
 
 func (s *IPStats) LimitMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ip := r.RemoteAddr
-		// Strip port if exists
-		for i := len(ip) - 1; i >= 0; i-- {
-			if ip[i] == ':' {
-				ip = ip[:i]
-				break
+		ip := r.Header.Get("X-Forwarded-For")
+		if ip == "" {
+			ip = r.Header.Get("X-Real-IP")
+		}
+		if ip == "" {
+			ip = r.RemoteAddr
+		}
+
+		// If X-Forwarded-For is a list, take the first one
+		if strings.Contains(ip, ",") {
+			ip = strings.TrimSpace(strings.Split(ip, ",")[0])
+		}
+
+		// Strip port if exists (from RemoteAddr)
+		if strings.Contains(ip, ":") {
+			for i := len(ip) - 1; i >= 0; i-- {
+				if ip[i] == ':' {
+					ip = ip[:i]
+					break
+				}
 			}
 		}
 
