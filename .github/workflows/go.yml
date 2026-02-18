@@ -35,10 +35,44 @@ jobs:
             type=raw,value=latest
             type=sha
 
-      - name: Build and push Docker image
+      - name: Build and push Parser
         uses: docker/build-push-action@v5
         with:
           context: ./parser
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  build-and-push-ml:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for ML
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository_owner }}/belgrade-estate-ml
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push ML Engine
+        uses: docker/build-push-action@v5
+        with:
+          context: ./ml
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
