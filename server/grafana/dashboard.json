@@ -1,0 +1,126 @@
+{
+    "__inputs": [
+        {
+            "name": "DS_PROMETHEUS",
+            "label": "Prometheus",
+            "description": "",
+            "type": "datasource",
+            "pluginId": "prometheus"
+        }
+    ],
+    "editable": true,
+    "panels": [
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 0,
+                "y": 0
+            },
+            "id": 1,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                }
+            },
+            "title": "Unique IPs (Life-time)",
+            "type": "stat",
+            "targets": [
+                {
+                    "expr": "proxy_unique_ips_count",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 8,
+                "y": 0
+            },
+            "id": 2,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                }
+            },
+            "title": "Cache Hits",
+            "type": "stat",
+            "targets": [
+                {
+                    "expr": "proxy_cache_hits_total",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "gridPos": {
+                "h": 8,
+                "w": 24,
+                "x": 0,
+                "y": 6
+            },
+            "id": 3,
+            "title": "Traffic Trends (Requests/s by IP)",
+            "type": "timeseries",
+            "targets": [
+                {
+                    "expr": "sum(rate(proxy_requests_total[1m]))",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "gridPos": {
+                "h": 6,
+                "w": 8,
+                "x": 16,
+                "y": 0
+            },
+            "id": 4,
+            "title": "Spam Blocks (429 Status)",
+            "type": "stat",
+            "targets": [
+                {
+                    "expr": "sum(proxy_requests_total{status=\"429\"})",
+                    "refId": "A"
+                }
+            ]
+        }
+    ],
+    "schemaVersion": 38,
+    "title": "Proxy Gateway Performance",
+    "uid": "proxy_gateway",
+    "version": 1
+}

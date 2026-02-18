@@ -1,10 +1,9 @@
-# 📊 Grafana & Monitoring Guide
+## 🚀 Quick Start (Dashboard Import)
 
-This directory contains assets for visualizing BelgradeEstateML data in Grafana.
-
-## 📂 Contents
-- **[dashboard.json](file:///c:/Users/vrclu/Documents/NewFilePC/Programing/Projects/BelgradeEstateML/ml/grafana/dashboard.json)**: A ready-to-import Grafana dashboard.
-- **Setup Instructions**: Follow the steps below.
+1.  **Open Grafana**: Go to **Dashboards** -> **Import**.
+2.  **Upload JSON**: Select the `dashboard.json` file from this folder.
+3.  **Configure Data Source**: You will see a dropdown asking for a **Prometheus** source. Select your Prometheus data source there.
+4.  **Import**: Click the import button.
 
 ---
 
