@@ -21,9 +21,8 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-# Copy binary and assets from builder
+# Copy binary from builder
 COPY --from=builder /app/main .
-COPY --from=builder /app/.env .
 
 # Expose API port
 EXPOSE 8080
